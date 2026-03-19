@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDA Fund Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Main content will be injected here -->
+        <header class="app-header">
+            <div class="user-profile">
+                <img id="user-avatar" src="https://ui-avatars.com/api/?name=CDA+Member&background=233554&color=fff" alt="Profile">
+                <div class="welcome-text">
+                    <span class="greeting">Benvenuto!</span>
+                    <h2 class="user-name">Membro CDA</h2>
+                </div>
+            </div>
+            <button class="notification-btn" aria-label="Notifiche">
+                <i data-lucide="bell"></i>
+            </button>
+        </header>
+
+        <main id="main-content">
+            <!-- Dynamic pages will be rendered here -->
+        </main>
+
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-page="dashboard">
+                <i data-lucide="home"></i>
+                <span>Home</span>
+            </button>
+            <button class="nav-item" data-page="operations">
+                <i data-lucide="layout-grid"></i>
+                <span>Operazioni</span>
+            </button>
+            <button class="nav-item" data-page="profile">
+                <i data-lucide="user"></i>
+                <span>Profilo</span>
+            </button>
+        </nav>
+    </div>
+    <script type="module" src="/main.js"></script>
+</body>
+</html>
