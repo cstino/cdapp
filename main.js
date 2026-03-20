@@ -1,14 +1,15 @@
-import { createIcons, Bell, Home, LayoutGrid, User, Plus, Check, X, Link as LinkIcon, TrendingUp, TrendingDown, ShieldCheck, Mail, Lock, Settings } from 'lucide';
+import { createIcons, Bell, Home, LayoutGrid, User, Plus, Check, X, Link as LinkIcon, TrendingUp, TrendingDown, ShieldCheck, Mail, Lock, Settings, Clock, Trash2, LogOut, Search, Filter } from 'lucide';
 import { getState, checkOperationsStatus } from './js/state.js';
 import { renderDashboard } from './js/pages/dashboard.js';
 import { renderOperations } from './js/pages/operations.js';
 import { renderLogin } from './js/pages/login.js';
 import { renderMembers } from './js/pages/members.js';
+import { renderProfile } from './js/pages/profile.js';
 import { supabase } from './js/supabase.js';
 
-const initIcons = () => {
+export const initIcons = () => {
     createIcons({
-        icons: { Bell, Home, LayoutGrid, User, Plus, Check, X, LinkIcon, TrendingUp, TrendingDown, ShieldCheck, Mail, Lock, Settings }
+        icons: { Bell, Home, LayoutGrid, User, Plus, Check, X, LinkIcon, TrendingUp, TrendingDown, ShieldCheck, Mail, Lock, Settings, Clock, Trash2, LogOut, Search, Filter }
     });
 };
 
@@ -17,24 +18,45 @@ const app = {
     state: null,
 
     async init() {
-        console.log('App initializing with Supabase Auth...');
+        try {
+            console.log('App initializing with Supabase Auth...');
+            initIcons();
 
-        const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabase.auth.getSession();
 
-        if (!session) {
-            this.state = null;
-            this.renderLogin();
-        } else {
-            this.state = await getState();
-            if (this.state) {
-                await checkOperationsStatus();
-                this.updateUIForUser();
-                await this.render();
-            } else {
+            if (!session) {
+                this.state = null;
                 this.renderLogin();
+            } else {
+                this.state = await getState();
+                if (this.state && this.state.profile && this.state.profile.id) {
+                    await checkOperationsStatus();
+                    this.updateUIForUser();
+                    await this.render();
+                    this.setupRealtimeListeners();
+                } else {
+                    console.warn('Session found but profile missing. Logging out...');
+                    await supabase.auth.signOut();
+                    this.renderLogin();
+                }
             }
+        } catch (err) {
+            console.error('Critical Init Error:', err);
+            this.renderLogin();
         }
         this.setupEventListeners();
+    },
+
+    setupRealtimeListeners() {
+        // Listen to everything in public schema (operations, votes, fund_balance, transactions)
+        supabase
+            .channel('cda-changes')
+            .on('postgres_changes', { event: '*', schema: 'public' }, async () => {
+                console.log('Realtime update detected, re-fetching state...');
+                this.state = await getState();
+                await this.render();
+            })
+            .subscribe();
     },
 
     updateUIForUser() {
@@ -55,7 +77,7 @@ const app = {
                 <span>Membri</span>
             `;
             nav.insertBefore(membersBtn, profileBtn);
-            initIcons();
+            // initIcons(); // Removed as initIcons is called once on app start and when new elements are added
         }
 
         // Show/hide bottom nav based on auth
@@ -73,7 +95,9 @@ const app = {
     async render() {
         if (!this.state) return;
         const mainContent = document.getElementById('main-content');
-        mainContent.innerHTML = '<div class="loading">Caricamento...</div>';
+
+        // Show skeleton while fetching
+        this.renderSkeleton(mainContent);
 
         this.state = await getState();
         mainContent.innerHTML = '';
@@ -85,18 +109,36 @@ const app = {
         } else if (this.currentPage === 'members') {
             await renderMembers(mainContent, this.state);
         } else if (this.currentPage === 'profile') {
-            mainContent.innerHTML = `<div class="profile-placeholder glass-card animate-fade"><h3>Il tuo Profilo</h3><p>Work in progress...</p><button id="logout-btn" class="btn-secondary w-full" style="margin-top: 20px;">Esci</button></div>`;
-            document.getElementById('logout-btn').addEventListener('click', async () => {
-                await supabase.auth.signOut();
-                window.location.reload();
-            });
+            await renderProfile(mainContent, this.state);
         }
 
-        initIcons();
+        // initIcons(); // Removed as initIcons is called once on app start and when new elements are added
+    },
+
+    renderSkeleton(container) {
+        if (this.currentPage === 'dashboard') {
+            container.innerHTML = `
+                <div class="loading-container animate-fade">
+                    <div class="skeleton-card skeleton"></div>
+                    <div class="skeleton-text skeleton" style="width: 40%"></div>
+                    <div class="skeleton-card skeleton" style="height: 180px"></div>
+                    <div class="skeleton-text skeleton" style="width: 50%"></div>
+                    <div class="skeleton-card skeleton" style="height: 80px"></div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="loading-container animate-fade">
+                    <div class="skeleton-text skeleton" style="font-size: 24px; height: 32px"></div>
+                    <div class="skeleton-card skeleton"></div>
+                    <div class="skeleton-card skeleton"></div>
+                    <div class="skeleton-card skeleton"></div>
+                </div>
+            `;
+        }
     },
 
     setupEventListeners() {
-        // Event delegation for nav items as they might be dynamic
         document.querySelector('.bottom-nav').addEventListener('click', async (e) => {
             const btn = e.target.closest('.nav-item');
             if (!btn) return;
@@ -109,6 +151,30 @@ const app = {
 
             await this.render();
         });
+    },
+
+    showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container') || this.createToastContainer();
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <i data-lucide="${type === 'success' ? 'check' : 'x'}"></i>
+            <span>${message}</span>
+        `;
+        container.appendChild(toast);
+        initIcons();
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    },
+
+    createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+        return container;
     }
 };
 

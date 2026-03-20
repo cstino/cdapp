@@ -6,7 +6,7 @@ export const getState = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
 
-    const { data: balanceData } = await supabase.from('fund_balance').select('amount').single();
+    const { data: balanceData } = await supabase.from('fund_balance').select('amount').limit(1).maybeSingle();
     const { data: operations } = await supabase.from('operations').select('*').order('created_at', { ascending: false });
     const { data: transactions } = await supabase.from('transactions').select('*').order('date', { ascending: false });
     const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
@@ -31,7 +31,7 @@ export const getState = async () => {
 
     return {
         user,
-        profile: profile || { username: 'Membro CDA', role: 'member' },
+        profile: profile,
         balance: balanceData?.amount || 0,
         operations: processedOps,
         transactions: transactions || []
@@ -87,23 +87,31 @@ export const voteOperation = async (operationId, type) => {
 };
 
 export const completeOperation = async (id) => {
-    // 1. Get operation details
-    const { data: op } = await supabase.from('operations').select('*').eq('id', id).single();
-    if (!op || op.status !== 'approved') return;
+    const { error } = await supabase.rpc('complete_operation', { op_id: id });
+    if (error) {
+        console.error('Errore durante il completamento:', error.message);
+        throw error;
+    }
+};
 
-    // 2. Transactionally (simulated) update balance and create movement
-    const { data: balanceData } = await supabase.from('fund_balance').select('amount').single();
-    const newBalance = (balanceData?.amount || 0) - op.cost;
+export const topUpBalance = async (amount, description) => {
+    try {
+        const { data: balanceData } = await supabase.from('fund_balance').select('id, amount').single();
+        const newBalance = (balanceData?.amount || 0) + amount;
 
-    await supabase.from('fund_balance').update({ amount: newBalance }).eq('id', (await supabase.from('fund_balance').select('id').single()).data.id);
+        await supabase.from('fund_balance').update({ amount: newBalance }).eq('id', balanceData.id);
 
-    await supabase.from('transactions').insert([{
-        type: 'out',
-        description: op.title,
-        amount: op.cost
-    }]);
+        await supabase.from('transactions').insert([{
+            type: 'in',
+            description: description || 'Ricarica fondo',
+            amount: amount
+        }]);
 
-    await supabase.from('operations').update({ status: 'completed' }).eq('id', id);
+        return true;
+    } catch (err) {
+        console.error(err);
+        return false;
+    }
 };
 
 export const checkOperationsStatus = async () => {

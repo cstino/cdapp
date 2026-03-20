@@ -53,6 +53,7 @@ export const renderOperations = async (container, state) => {
     `;
 
     container.innerHTML = html;
+    import('../../main.js').then(m => m.initIcons());
     setupOpsEventListeners(state);
 };
 
@@ -65,14 +66,14 @@ const renderOpsList = (operations, filter) => {
             <div class="op-header">
                 <span class="proposer">${op.proposer}</span>
                 <span class="timer" data-start="${op.created_at}">
-                    <i data-lucide="bell"></i> 
+                    <i data-lucide="clock"></i> 
                     ${getRemainingTime(op.created_at)}
                 </span>
             </div>
             <h4>${op.title}</h4>
             <p class="desc">${op.description}</p>
             <div class="op-links">
-                ${op.links ? `<a href="${op.links}" target="_blank"><i data-lucide="link-icon"></i> Link Utile</a>` : ''}
+                ${op.links ? `<a href="${op.links}" target="_blank"><i data-lucide="link"></i> Link Utile</a>` : ''}
             </div>
             <div class="op-info">
                 <span class="cost">€ ${parseFloat(op.cost).toLocaleString('it-IT')}</span>
@@ -86,10 +87,10 @@ const renderOpsList = (operations, filter) => {
             
             ${filter === 'pending' ? `
                 <div class="op-actions">
-                    <button class="vote-btn approve" data-id="${op.id}">
+                    <button class="vote-btn approve ${op.user_vote === 'approve' ? 'active' : ''}" data-id="${op.id}">
                         <i data-lucide="check"></i> Approva
                     </button>
-                    <button class="vote-btn reject" data-id="${op.id}">
+                    <button class="vote-btn reject ${op.user_vote === 'reject' ? 'active' : ''}" data-id="${op.id}">
                         <i data-lucide="x"></i> Boccia
                     </button>
                 </div>
@@ -133,10 +134,11 @@ const setupOpsEventListeners = (state) => {
             description: document.getElementById('op-desc').value,
             cost: parseFloat(document.getElementById('op-cost').value),
             links: document.getElementById('op-links').value,
-            proposer: "Membro CDA"
+            proposer: state.profile.username || "Membro CDA"
         };
         await addOperation(newOp);
         modal.classList.remove('open');
+        app.showToast('Proposta pubblicata con successo!');
         await app.render();
     });
 
@@ -147,9 +149,7 @@ const setupOpsEventListeners = (state) => {
             const tab = btn.getAttribute('data-tab');
             const list = document.getElementById('ops-list');
             list.innerHTML = renderOpsList(state.operations, tab);
-            import('lucide').then(({ createIcons, Check, X, Bell, LinkIcon }) => {
-                createIcons({ icons: { Check, X, Bell, LinkIcon } });
-            });
+            import('../../main.js').then(m => m.initIcons());
             attachOpActions();
         });
     });
@@ -163,6 +163,7 @@ const attachOpActions = () => {
             const id = btn.getAttribute('data-id');
             const type = btn.classList.contains('approve') ? 'approve' : 'reject';
             await voteOperation(id, type);
+            app.showToast(type === 'approve' ? 'Hai approvato la proposta' : 'Hai bocciato la proposta');
             await app.render();
         });
     });
@@ -170,8 +171,13 @@ const attachOpActions = () => {
     document.querySelectorAll('.complete-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
             const id = btn.getAttribute('data-id');
-            await completeOperation(id);
-            await app.render();
+            try {
+                await completeOperation(id);
+                app.showToast('Operazione completata e bilancio aggiornato!');
+                await app.render();
+            } catch (err) {
+                app.showToast(err.message, 'error');
+            }
         });
     });
 };

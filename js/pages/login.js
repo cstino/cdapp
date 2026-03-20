@@ -91,14 +91,17 @@ export const renderLogin = (container) => {
         // Map identifier to email if it's not an email
         let email = identifier;
         if (!identifier.includes('@')) {
-            // Check if it's a username in our profiles table (to be created)
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('email')
-                .eq('username', identifier)
-                .single();
+            try {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('email')
+                    .eq('username', identifier)
+                    .single();
 
-            if (profile) email = profile.email;
+                if (profile) email = profile.email;
+            } catch (err) {
+                console.warn('Profile lookup failed, trying direct email login:', err);
+            }
         }
 
         const { error } = await supabase.auth.signInWithPassword({
@@ -112,13 +115,11 @@ export const renderLogin = (container) => {
             loginBtn.disabled = false;
             loginBtn.textContent = 'Entra';
         } else {
-            // Success! The app will re-init automatically if we trigger it
-            await app.init();
+            // Success! The app will re-init automatically
+            window.location.reload(); 
         }
     });
 
     // Re-init generic icons
-    import('lucide').then(({ createIcons, ShieldCheck }) => {
-        createIcons({ icons: { ShieldCheck } });
-    });
+    import('../../main.js').then(m => m.initIcons());
 };

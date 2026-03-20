@@ -56,31 +56,14 @@ export const renderMembers = async (container, state) => {
     `;
 
     container.innerHTML = html;
-
-    // Add specific styles for members page
-    if (!document.getElementById('members-style')) {
-        const style = document.createElement('style');
-        style.id = 'members-style';
-        style.textContent = `
-            .members-list { margin-top: 32px; }
-            .member-item { display: flex; align-items: center; gap: 16px; padding: 16px; margin-bottom: 12px; }
-            .member-avatar { width: 44px; height: 44px; border-radius: 12px; background: var(--secondary-bg); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--accent-color); }
-            .member-info { flex: 1; display: flex; flex-direction: column; }
-            .member-info .name { font-weight: 600; font-size: 15px; }
-            .member-info .role { font-size: 12px; color: var(--text-secondary); }
-            .feedback-banner { padding: 16px; border-radius: 16px; margin-bottom: 24px; text-align: center; }
-            .feedback-banner.success { background: rgba(16, 185, 129, 0.1); color: var(--success); border-color: var(--success); }
-            .feedback-banner.error { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: var(--danger); }
-        `;
-        document.head.appendChild(style);
-    }
-
-    await fetchAndRenderMembers();
+    await fetchAndRenderMembers(state.user.id);
     setupMembersEventListeners();
 };
 
-const fetchAndRenderMembers = async () => {
+const fetchAndRenderMembers = async (currentUserId) => {
     const listContainer = document.getElementById('members-items');
+    if (!listContainer) return;
+
     const { data: profiles, error } = await adminSupabase.from('profiles').select('*').order('username');
 
     if (error) {
@@ -100,13 +83,16 @@ const fetchAndRenderMembers = async () => {
                 <span class="name">${p.username}</span>
                 <span class="role">${p.role === 'superadmin' ? 'Superadmin' : 'Membro CDA'}</span>
             </div>
-            <div class="member-status">
-                <i data-lucide="check" style="color: var(--success); width: 16px;"></i>
-            </div>
+            ${p.id !== currentUserId ? `
+                <button class="member-delete-btn" data-id="${p.id}" data-username="${p.username}">
+                    <i data-lucide="trash-2"></i>
+                </button>
+            ` : ''}
         </div>
     `).join('');
 
-    import('lucide').then(({ createIcons, Check }) => createIcons({ icons: { Check } }));
+    import('../../main.js').then(m => m.initIcons());
+    setupDeleteListeners();
 };
 
 const setupMembersEventListeners = () => {
@@ -114,8 +100,6 @@ const setupMembersEventListeners = () => {
     const modal = document.getElementById('member-modal');
     const closeBtn = document.getElementById('close-member-modal');
     const form = document.getElementById('member-form');
-    const feedback = document.getElementById('admin-feedback');
-    const feedbackMsg = document.getElementById('feedback-msg');
 
     addBtn?.addEventListener('click', () => modal.classList.add('open'));
     closeBtn?.addEventListener('click', () => modal.classList.remove('open'));
@@ -132,8 +116,7 @@ const setupMembersEventListeners = () => {
         submitBtn.textContent = 'Creazione in corso...';
 
         try {
-            // 1. Create user in Auth
-            const { data: authData, error: authError } = await adminSupabase.auth.admin.createUser({
+            const { error: authError, data } = await adminSupabase.auth.admin.createUser({
                 email,
                 password,
                 email_confirm: true,
@@ -142,30 +125,48 @@ const setupMembersEventListeners = () => {
 
             if (authError) throw authError;
 
-            // 2. Create profile record (usually handled by triggers, but let's be explicit if not)
             const { error: profError } = await adminSupabase.from('profiles').insert([{
-                id: authData.user.id,
+                id: data.user.id,
                 username,
+                email,
                 role
             }]);
 
             if (profError) throw profError;
 
-            // Success
             modal.classList.remove('open');
-            feedback.style.display = 'block';
-            feedback.className = 'glass-card feedback-banner success';
-            feedbackMsg.innerHTML = `Account per <strong>${username}</strong> creato!<br>User: ${email}<br>Pass: ${password}`;
-            await fetchAndRenderMembers();
+            app.showToast(`Utente ${username} creato con successo!`);
             form.reset();
+            await fetchAndRenderMembers(app.state.user.id);
         } catch (err) {
             console.error(err);
-            feedback.style.display = 'block';
-            feedback.className = 'glass-card feedback-banner error';
-            feedbackMsg.textContent = "Errore: " + (err.message || "Impossibile creare l'utente.");
+            app.showToast(err.message || "Impossibile creare l'utente.", 'error');
         } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = 'Crea Account';
         }
+    });
+
+    setupDeleteListeners();
+};
+
+const setupDeleteListeners = () => {
+    document.querySelectorAll('.member-delete-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            const username = btn.getAttribute('data-username');
+
+            if (confirm(`Sei sicuro di voler rimuovere ${username}? L'azione è irreversibile.`)) {
+                try {
+                    const { error } = await adminSupabase.auth.admin.deleteUser(id);
+                    if (error) throw error;
+
+                    app.showToast(`Utente ${username} rimosso.`);
+                    await fetchAndRenderMembers(app.state.user.id);
+                } catch (err) {
+                    app.showToast(err.message, 'error');
+                }
+            }
+        });
     });
 };
