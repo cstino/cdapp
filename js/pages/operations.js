@@ -23,7 +23,7 @@ export const renderOperations = async (container, state) => {
             </div>
 
             <div id="op-modal" class="modal">
-                <div class="modal-content glass-card">
+                <div class="modal-content">
                     <h3>Proponi Operazione</h3>
                     <form id="op-form">
                         <div class="form-group">

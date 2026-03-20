@@ -450,9 +450,9 @@ body {
     width: 100%;
     max-width: 440px;
     margin: 0 auto;
-    background: none;
-    border: none;
-    box-shadow: none;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .form-group { margin-bottom: 20px; }

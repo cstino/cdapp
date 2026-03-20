@@ -24,7 +24,7 @@ export const renderMembers = async (container, state) => {
             </div>
 
             <div id="member-modal" class="modal">
-                <div class="modal-content glass-card">
+                <div class="modal-content">
                     <h3>Crea Nuovo Account</h3>
                     <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">
                         L'email verrà generata automaticamente come username@cda.app

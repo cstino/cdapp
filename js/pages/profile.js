@@ -39,8 +39,8 @@ export const renderProfile = async (container, state) => {
                 </div>
             </div>
 
-            <div id="pass-modal" class="modal">
-                <div class="modal-content glass-card">
+            <div id="password-modal" class="modal">
+                <div class="modal-content">
                     <h3>Cambia Password</h3>
                     <form id="pass-form">
                         <div class="form-group">
