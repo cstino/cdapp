@@ -21,33 +21,33 @@ export const renderOperations = async (container, state) => {
             <div id="ops-list" class="ops-list">
                 ${renderOpsList(state.operations, 'pending')}
             </div>
+        </div>
 
-            <div id="op-modal" class="modal">
-                <div class="modal-content">
-                    <h3>Proponi Operazione</h3>
-                    <form id="op-form">
-                        <div class="form-group">
-                            <label>Titolo</label>
-                            <input type="text" id="op-title" placeholder="Es: Nuovo Server" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Descrizione</label>
-                            <textarea id="op-desc" placeholder="Descrivi l'operazione..." required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Spesa Preventivata (€)</label>
-                            <input type="number" id="op-cost" placeholder="0.00" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Link Utili (opzionale)</label>
-                            <input type="url" id="op-links" placeholder="https://...">
-                        </div>
-                        <div class="modal-actions">
-                            <button type="button" id="close-modal" class="btn-secondary">Annulla</button>
-                            <button type="submit" class="btn-primary">Pubblica</button>
-                        </div>
-                    </form>
-                </div>
+        <div id="op-modal" class="modal">
+            <div class="modal-content">
+                <h3>Proponi Operazione</h3>
+                <form id="op-form">
+                    <div class="form-group">
+                        <label>Titolo</label>
+                        <input type="text" id="op-title" placeholder="Es: Nuovo Server" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Descrizione</label>
+                        <textarea id="op-desc" placeholder="Descrivi l'operazione..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Spesa Preventivata (€)</label>
+                        <input type="number" id="op-cost" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Link Utili (opzionale)</label>
+                        <input type="url" id="op-links" placeholder="https://...">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" id="close-modal" class="btn-secondary">Annulla</button>
+                        <button type="submit" class="btn-primary">Pubblica</button>
+                    </div>
+                </form>
             </div>
         </div>
     `;
@@ -110,9 +110,9 @@ const getRemainingTime = (createdAt) => {
     const end = new Date(created.getTime() + 24 * 60 * 60 * 1000);
     const now = new Date();
     const diff = end - now;
-    
+
     if (diff <= 0) return "Scaduto";
-    
+
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     return `${hours}h ${mins}m rimasti`;

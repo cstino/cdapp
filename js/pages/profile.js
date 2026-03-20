@@ -38,21 +38,21 @@ export const renderProfile = async (container, state) => {
                     </button>
                 </div>
             </div>
+        </div>
 
-            <div id="password-modal" class="modal">
-                <div class="modal-content">
-                    <h3>Cambia Password</h3>
-                    <form id="pass-form">
-                        <div class="form-group">
-                            <label>Nuova Password</label>
-                            <input type="password" id="new-password" placeholder="Minimo 6 caratteri" required minlength="6">
-                        </div>
-                        <div class="modal-actions">
-                            <button type="button" id="close-pass-modal" class="btn-secondary">Annulla</button>
-                            <button type="submit" class="btn-primary">Aggiorna</button>
-                        </div>
-                    </form>
-                </div>
+        <div id="password-modal" class="modal">
+            <div class="modal-content">
+                <h3>Cambia Password</h3>
+                <form id="pass-form">
+                    <div class="form-group">
+                        <label>Nuova Password</label>
+                        <input type="password" id="new-password" placeholder="Minimo 6 caratteri" required minlength="6">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" id="close-pass-modal" class="btn-secondary">Annulla</button>
+                        <button type="submit" class="btn-primary">Aggiorna</button>
+                    </div>
+                </form>
             </div>
         </div>
     `;
@@ -84,9 +84,9 @@ const setupProfileListeners = () => {
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const newPassword = document.getElementById('new-password').value;
-        
+
         const { error } = await supabase.auth.updateUser({ password: newPassword });
-        
+
         if (error) {
             app.showToast(error.message, 'error');
         } else {

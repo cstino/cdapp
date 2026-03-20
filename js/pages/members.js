@@ -22,35 +22,35 @@ export const renderMembers = async (container, state) => {
                     <div class="loading">Caricamento membri...</div>
                 </div>
             </div>
+        </div>
 
-            <div id="member-modal" class="modal">
-                <div class="modal-content">
-                    <h3>Crea Nuovo Account</h3>
-                    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">
-                        L'email verrà generata automaticamente come username@cda.app
-                    </p>
-                    <form id="member-form">
-                        <div class="form-group">
-                            <label>Username (Nome da visualizzare)</label>
-                            <input type="text" id="member-username" placeholder="Es: Mario Rossi" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Password Iniziale</label>
-                            <input type="text" id="member-password" placeholder="Password sicura..." required>
-                        </div>
-                        <div class="form-group">
-                            <label>Ruolo</label>
-                            <select id="member-role" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px; color: white;">
-                                <option value="member">Membro CDA</option>
-                                <option value="superadmin">Superadmin</option>
-                            </select>
-                        </div>
-                        <div class="modal-actions">
-                            <button type="button" id="close-member-modal" class="btn-secondary">Annulla</button>
-                            <button type="submit" class="btn-primary" id="member-submit">Crea Account</button>
-                        </div>
-                    </form>
-                </div>
+        <div id="member-modal" class="modal">
+            <div class="modal-content">
+                <h3>Crea Nuovo Account</h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">
+                    L'email verrà generata automaticamente come username@cda.app
+                </p>
+                <form id="member-form">
+                    <div class="form-group">
+                        <label>Username (Nome da visualizzare)</label>
+                        <input type="text" id="member-username" placeholder="Es: Mario Rossi" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password Iniziale</label>
+                        <input type="text" id="member-password" placeholder="Password sicura..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>Ruolo</label>
+                        <select id="member-role" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px; color: white;">
+                            <option value="member">Membro CDA</option>
+                            <option value="superadmin">Superadmin</option>
+                        </select>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" id="close-member-modal" class="btn-secondary">Annulla</button>
+                        <button type="submit" class="btn-primary" id="member-submit">Crea Account</button>
+                    </div>
+                </form>
             </div>
         </div>
     `;
