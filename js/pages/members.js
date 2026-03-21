@@ -101,8 +101,33 @@ const setupMembersEventListeners = () => {
     const closeBtn = document.getElementById('close-member-modal');
     const form = document.getElementById('member-form');
 
-    addBtn?.addEventListener('click', () => modal.classList.add('open'));
-    closeBtn?.addEventListener('click', () => modal.classList.remove('open'));
+    addBtn?.addEventListener('click', () => {
+        modal.classList.add('open');
+        loadMemberDraft();
+    });
+    closeBtn?.addEventListener('click', () => {
+        modal.classList.remove('open');
+    });
+
+    // Save draft on input
+    form?.addEventListener('input', () => {
+        const draft = {
+            username: document.getElementById('member-username').value,
+            password: document.getElementById('member-password').value,
+            role: document.getElementById('member-role').value
+        };
+        localStorage.setItem('member_draft', JSON.stringify(draft));
+    });
+
+    const loadMemberDraft = () => {
+        const saved = localStorage.getItem('member_draft');
+        if (saved) {
+            const draft = JSON.parse(saved);
+            document.getElementById('member-username').value = draft.username || '';
+            document.getElementById('member-password').value = draft.password || '';
+            document.getElementById('member-role').value = draft.role || 'member';
+        }
+    };
 
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -135,6 +160,7 @@ const setupMembersEventListeners = () => {
             if (profError) throw profError;
 
             modal.classList.remove('open');
+            localStorage.removeItem('member_draft');
             app.showToast(`Utente ${username} creato con successo!`);
             form.reset();
             await fetchAndRenderMembers(app.state.user.id);

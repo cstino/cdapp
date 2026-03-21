@@ -22,6 +22,12 @@ const app = {
             console.log('App initializing with Supabase Auth...');
             initIcons();
 
+            // Detect initial page from hash
+            const hash = window.location.hash.replace('#', '');
+            if (['dashboard', 'operations', 'members', 'profile'].includes(hash)) {
+                this.currentPage = hash;
+            }
+
             const { data: { session } } = await supabase.auth.getSession();
 
             if (!session) {
@@ -45,6 +51,15 @@ const app = {
             this.renderLogin();
         }
         this.setupEventListeners();
+
+        // Handle browser back/forward and manual hash change
+        window.addEventListener('hashchange', () => {
+            const newHash = window.location.hash.replace('#', '');
+            if (newHash && newHash !== this.currentPage) {
+                this.currentPage = newHash;
+                this.render();
+            }
+        });
     },
 
     setupRealtimeListeners() {
@@ -96,6 +111,16 @@ const app = {
         if (!this.state) return;
         const mainContent = document.getElementById('main-content');
 
+        // Update hash without triggering hashchange twice
+        if (window.location.hash !== `#${this.currentPage}`) {
+            window.location.hash = this.currentPage;
+        }
+
+        // Update nav active state
+        document.querySelectorAll('.nav-item').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-page') === this.currentPage);
+        });
+
         // Show skeleton while fetching
         this.renderSkeleton(mainContent);
 
@@ -111,8 +136,6 @@ const app = {
         } else if (this.currentPage === 'profile') {
             await renderProfile(mainContent, this.state);
         }
-
-        // initIcons(); // Removed as initIcons is called once on app start and when new elements are added
     },
 
     renderSkeleton(container) {

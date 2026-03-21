@@ -37,11 +37,11 @@ export const renderOperations = async (container, state) => {
                     </div>
                     <div class="form-group">
                         <label>Spesa Preventivata (€)</label>
-                        <input type="number" id="op-cost" placeholder="0.00" required>
+                        <input type="number" id="op-cost" placeholder="0.00" step="0.01" required>
                     </div>
                     <div class="form-group">
                         <label>Link Utili (opzionale)</label>
-                        <input type="url" id="op-links" placeholder="https://...">
+                        <input type="text" id="op-links" placeholder="www.esempio.it">
                     </div>
                     <div class="modal-actions">
                         <button type="button" id="close-modal" class="btn-secondary">Annulla</button>
@@ -124,20 +124,55 @@ const setupOpsEventListeners = (state) => {
     const closeBtn = document.getElementById('close-modal');
     const form = document.getElementById('op-form');
 
-    addBtn?.addEventListener('click', () => modal.classList.add('open'));
-    closeBtn?.addEventListener('click', () => modal.classList.remove('open'));
+    addBtn?.addEventListener('click', () => {
+        modal.classList.add('open');
+        loadDraft();
+    });
+    closeBtn?.addEventListener('click', () => {
+        modal.classList.remove('open');
+    });
+
+    // Save draft on input
+    form?.addEventListener('input', () => {
+        const draft = {
+            title: document.getElementById('op-title').value,
+            description: document.getElementById('op-desc').value,
+            cost: document.getElementById('op-cost').value,
+            links: document.getElementById('op-links').value
+        };
+        localStorage.setItem('op_draft', JSON.stringify(draft));
+    });
+
+    const loadDraft = () => {
+        const saved = localStorage.getItem('op_draft');
+        if (saved) {
+            const draft = JSON.parse(saved);
+            document.getElementById('op-title').value = draft.title || '';
+            document.getElementById('op-desc').value = draft.description || '';
+            document.getElementById('op-cost').value = draft.cost || '';
+            document.getElementById('op-links').value = draft.links || '';
+        }
+    };
 
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        let links = document.getElementById('op-links').value.trim();
+        if (links && !links.startsWith('http')) {
+            links = 'https://' + links;
+        }
+
         const newOp = {
             title: document.getElementById('op-title').value,
             description: document.getElementById('op-desc').value,
-            cost: parseFloat(document.getElementById('op-cost').value),
-            links: document.getElementById('op-links').value,
+            cost: parseFloat(document.getElementById('op-cost').value.replace(',', '.')),
+            links: links,
             proposer: state.profile.username || "Membro CDA"
         };
         await addOperation(newOp);
         modal.classList.remove('open');
+        localStorage.removeItem('op_draft');
+        form.reset();
         app.showToast('Proposta pubblicata con successo!');
         await app.render();
     });
