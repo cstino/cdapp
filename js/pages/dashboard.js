@@ -4,7 +4,7 @@ export const renderDashboard = async (container, state) => {
     // Calculate real stats
     const totalIn = state.transactions.filter(t => t.type === 'in').reduce((sum, t) => sum + parseFloat(t.amount), 0);
     const totalOut = state.transactions.filter(t => t.type === 'out').reduce((sum, t) => sum + parseFloat(t.amount), 0);
-    
+
     // Calculate a simple trend (last 7 days vs total or similar)
     const recentIn = state.transactions
         .filter(t => t.type === 'in' && (new Date() - new Date(t.date)) < 7 * 24 * 60 * 60 * 1000)
@@ -41,7 +41,6 @@ export const renderDashboard = async (container, state) => {
 
             <div class="section-header">
                 <h3>Andamento Fondo</h3>
-                <button class="notification-btn"><i data-lucide="bell"></i></button>
             </div>
             <div class="glass-card chart-container">
                 <canvas id="fundChart"></canvas>
@@ -90,7 +89,7 @@ export const renderDashboard = async (container, state) => {
 
     container.innerHTML = html;
     initChart(state);
-    
+
     // Re-init generic icons for dynamic content
     import('../../main.js').then(m => m.initIcons());
     setupDashboardListeners(state);
@@ -109,10 +108,10 @@ const setupDashboardListeners = (state) => {
         e.preventDefault();
         const amount = parseFloat(document.getElementById('topup-amount').value);
         const description = document.getElementById('topup-desc').value;
-        
+
         const { topUpBalance } = await import('../state.js');
         const success = await topUpBalance(amount, description);
-        
+
         if (success) {
             import('../../main.js').then(m => m.default.showToast('Fondo ricaricato!'));
             modal.classList.remove('open');
@@ -131,7 +130,7 @@ const initChart = (state) => {
     let current = parseFloat(state.balance);
     const points = [current];
     const labels = ['Oggi'];
-    
+
     // Go back through last 5 transactions to build history
     state.transactions.slice(0, 5).forEach((t, i) => {
         const change = t.type === 'in' ? parseFloat(t.amount) : -parseFloat(t.amount);
@@ -167,12 +166,12 @@ const initChart = (state) => {
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-                x: { 
+                x: {
                     grid: { display: false },
                     ticks: { color: '#94a3b8', font: { size: 10 } }
                 },
-                y: { 
-                    display: false 
+                y: {
+                    display: false
                 }
             }
         }
