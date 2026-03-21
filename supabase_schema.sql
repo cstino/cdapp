@@ -69,6 +69,10 @@ ALTER TABLE operations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "ops_read" ON operations FOR SELECT TO authenticated USING (true);
 CREATE POLICY "ops_insert" ON operations FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "ops_update_admin" ON operations FOR UPDATE TO authenticated USING (is_admin());
+CREATE POLICY "ops_delete_admin" ON operations FOR DELETE TO authenticated USING (is_admin());
+CREATE POLICY "ops_delete_owner" ON operations FOR DELETE TO authenticated USING (
+  proposer = (SELECT username FROM profiles WHERE id = auth.uid())
+);
 
 CREATE TABLE votes (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,

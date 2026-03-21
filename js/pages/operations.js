@@ -215,10 +215,16 @@ const attachOpActions = () => {
             e.stopPropagation();
             const id = btn.getAttribute('data-id');
             if (confirm('Sei sicuro di voler eliminare questa proposta?')) {
-                const { deleteOperation } = await import('../state.js');
-                await deleteOperation(id);
-                app.showToast('Proposta eliminata');
-                await app.render();
+                try {
+                    const { deleteOperation } = await import('../state.js');
+                    await deleteOperation(id);
+                    app.showToast('Proposta eliminata');
+                    // Force refresh state before re-rendering
+                    location.hash = '#/operations'; // Trigger hash change safely
+                    await app.render();
+                } catch (err) {
+                    app.showToast(err.message, 'error');
+                }
             }
         });
     });

@@ -1,5 +1,5 @@
-// js/state.js
 import { supabase, adminSupabase } from './supabase.js';
+import { notifyNewOperation, notifyOperationCompleted, notifyBalanceUpdated } from './notifications.js';
 
 export const getState = async () => {
     // Basic check for logged in user
@@ -69,6 +69,11 @@ export const addOperation = async (operation) => {
     }]).select();
 
     if (error) console.error('Error adding operation:', error);
+
+    if (data?.[0]) {
+        notifyNewOperation(data[0]);
+    }
+
     return data?.[0];
 };
 
@@ -92,6 +97,14 @@ export const completeOperation = async (id) => {
         console.error('Errore durante il completamento:', error.message);
         throw error;
     }
+
+    // Per avere i dettagli per la notifica facciamo una select veloce
+    const { data: op } = await supabase.from('operations').select('title, cost').eq('id', id).single();
+    if (op) {
+        notifyOperationCompleted(id, op.title, op.cost);
+        const { data: balanceData } = await supabase.from('fund_balance').select('amount').single();
+        notifyBalanceUpdated(-op.cost, balanceData?.amount || 0);
+    }
 };
 
 export const topUpBalance = async (amount, description) => {
@@ -106,6 +119,8 @@ export const topUpBalance = async (amount, description) => {
             description: description || 'Ricarica fondo',
             amount: amount
         }]);
+
+        notifyBalanceUpdated(amount, newBalance);
 
         return true;
     } catch (err) {
@@ -138,11 +153,10 @@ export const checkOperationsStatus = async () => {
 };
 
 export const deleteOperation = async (id) => {
-    // Delete associated votes first to avoid foreign key constraints
-    await supabase.from('votes').delete().eq('operation_id', id);
-    const { error } = await supabase.from('operations').delete().eq('id', id);
-    if (error) {
-        console.error('Error deleting operation:', error);
-        throw error;
-    }
+    // Delete operation and check if it actually happened
+    // The DB handles associated votes via ON DELETE CASCADE
+    const { error, count } = await supabase.from('operations').delete({ count: 'exact' }).eq('id', id);
+
+    if (error) throw error;
+    if (count === 0) throw new Error("Operazione non trovata o permessi insufficienti");
 };

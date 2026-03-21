@@ -81,11 +81,13 @@ const fetchAndRenderMembers = async (currentUserId) => {
     }
 
     listContainer.innerHTML = profiles.map(p => `
-        <div class="member-item glass-card animate-fade">
+        <div class="member-card glass-card animate-fade">
             <div class="member-avatar">${p.username.charAt(0).toUpperCase()}</div>
             <div class="member-info">
-                <span class="name">${p.username}</span>
-                <span class="role">${p.role === 'superadmin' ? 'Superadmin' : 'Membro CDA'}</span>
+                <h4>
+                    ${p.username}
+                    <span class="member-role">${p.role === 'superadmin' ? 'Superadmin' : 'Membro CDA'}</span>
+                </h4>
             </div>
             ${p.id !== currentUserId ? `
                 <button class="member-delete-btn" data-id="${p.id}" data-username="${p.username}">

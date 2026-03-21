@@ -781,6 +781,64 @@ body {
     border: 1px solid var(--accent-color);
 }
 
+.members-list {
+    margin-top: 32px;
+}
+
+.members-list h3 {
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+#members-items {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.member-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px !important;
+}
+
+.member-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-secondary));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.member-info {
+    flex: 1;
+}
+
+.member-info h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.member-role {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+}
+
 .profile-info-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -835,17 +893,20 @@ body {
 }
 
 .member-delete-btn {
-    position: absolute;
-    right: 12px;
-    opacity: 0;
-    transition: opacity 0.3s;
     background: none;
     border: none;
     color: var(--danger);
     cursor: pointer;
     padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.6;
+    transition: all 0.3s;
 }
 
-.member-item:hover .member-delete-btn {
+.member-delete-btn:hover {
     opacity: 1;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 12px;
 }
