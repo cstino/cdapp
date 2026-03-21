@@ -138,6 +138,11 @@ export const checkOperationsStatus = async () => {
 };
 
 export const deleteOperation = async (id) => {
+    // Delete associated votes first to avoid foreign key constraints
+    await supabase.from('votes').delete().eq('operation_id', id);
     const { error } = await supabase.from('operations').delete().eq('id', id);
-    if (error) console.error('Error deleting operation:', error);
+    if (error) {
+        console.error('Error deleting operation:', error);
+        throw error;
+    }
 };

@@ -36,9 +36,13 @@ export const renderMembers = async (container, state) => {
                         <input type="text" id="member-username" placeholder="Es: Mario Rossi" required>
                     </div>
                     <div class="form-group">
-                        <label>Password Iniziale</label>
-                        <input type="text" id="member-password" placeholder="Password sicura..." required>
-                    </div>
+                    <label>E-mail</label>
+                    <input type="email" id="member-email" placeholder="esempio@cda.app" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="member-password" placeholder="Scegli una password" required>
+                </div>
                     <div class="form-group">
                         <label>Ruolo</label>
                         <select id="member-role" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px; color: white;">
@@ -113,6 +117,7 @@ const setupMembersEventListeners = () => {
     form?.addEventListener('input', () => {
         const draft = {
             username: document.getElementById('member-username').value,
+            email: document.getElementById('member-email').value,
             password: document.getElementById('member-password').value,
             role: document.getElementById('member-role').value
         };
@@ -124,6 +129,7 @@ const setupMembersEventListeners = () => {
         if (saved) {
             const draft = JSON.parse(saved);
             document.getElementById('member-username').value = draft.username || '';
+            document.getElementById('member-email').value = draft.email || '';
             document.getElementById('member-password').value = draft.password || '';
             document.getElementById('member-role').value = draft.role || 'member';
         }
@@ -132,9 +138,9 @@ const setupMembersEventListeners = () => {
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const username = document.getElementById('member-username').value;
+        const email = document.getElementById('member-email').value;
         const password = document.getElementById('member-password').value;
         const role = document.getElementById('member-role').value;
-        const email = `${username.toLowerCase().replace(/\s+/g, '.')}@cda.app`;
         const submitBtn = document.getElementById('member-submit');
 
         submitBtn.disabled = true;
@@ -142,8 +148,8 @@ const setupMembersEventListeners = () => {
 
         try {
             const { error: authError, data } = await adminSupabase.auth.admin.createUser({
-                email,
-                password,
+                email: email,
+                password: password,
                 email_confirm: true,
                 user_metadata: { username, role }
             });
