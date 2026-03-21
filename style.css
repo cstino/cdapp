@@ -28,7 +28,11 @@ body {
   color: var(--text-primary);
   line-height: 1.5;
   height: 100vh;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
+  position: fixed;
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -43,7 +47,7 @@ body {
   position: relative;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 0 100px rgba(0,0,0,0.5);
+  overflow: hidden;
 }
 
 /* Header */
@@ -373,6 +377,33 @@ body {
 .proposer { color: var(--accent-color); font-weight: 600; }
 .timer { color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
 .timer i { width: 12px; height: 12px; }
+
+.op-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: var(--danger);
+    padding: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    opacity: 0.6;
+    transition: opacity 0.3s;
+}
+
+.delete-btn:hover {
+    opacity: 1;
+}
+
+.delete-btn i {
+    width: 18px;
+    height: 18px;
+}
 
 .op-card h4 { margin-bottom: 8px; font-size: 17px; }
 .op-card .desc { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }

@@ -65,10 +65,17 @@ const renderOpsList = (operations, filter) => {
         <div class="op-card glass-card animate-fade">
             <div class="op-header">
                 <span class="proposer">${op.proposer}</span>
-                <span class="timer" data-start="${op.created_at}">
-                    <i data-lucide="clock"></i> 
-                    ${getRemainingTime(op.created_at)}
-                </span>
+                <div class="op-header-right">
+                    ${(op.proposer === app.state.profile.username || app.state.profile.role === 'superadmin') && op.status === 'pending' ? `
+                        <button class="delete-btn" data-id="${op.id}">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    ` : ''}
+                    <span class="timer" data-start="${op.created_at}">
+                        <i data-lucide="clock"></i> 
+                        ${getRemainingTime(op.created_at)}
+                    </span>
+                </div>
             </div>
             <h4>${op.title}</h4>
             <p class="desc">${op.description}</p>
@@ -200,6 +207,19 @@ const attachOpActions = () => {
             await voteOperation(id, type);
             app.showToast(type === 'approve' ? 'Hai approvato la proposta' : 'Hai bocciato la proposta');
             await app.render();
+        });
+    });
+
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id');
+            if (confirm('Sei sicuro di voler eliminare questa proposta?')) {
+                const { deleteOperation } = await import('../state.js');
+                await deleteOperation(id);
+                app.showToast('Proposta eliminata');
+                await app.render();
+            }
         });
     });
 
